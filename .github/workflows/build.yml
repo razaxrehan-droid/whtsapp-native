@@ -1,0 +1,39 @@
+name: Build Android APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Install Expo CLI & Dependencies
+        run: |
+          npm install -g expo-cli
+          npm install
+          
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --no-interactive
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Build Release APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+          
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GB-WhatsApp-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
